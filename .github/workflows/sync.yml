@@ -217,12 +217,14 @@ jobs:
         id: version
         run: |
           RESULT=$(node scripts/check-update.js --json --force)
-          MAC_VER=$(echo "$RESULT" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const j=JSON.parse(d);console.log(j.platforms?.macOS?.version||'')}catch{console.log('')}})")
+          MAC_ARM64=$(echo "$RESULT" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const j=JSON.parse(d);console.log(j.platforms?.['macOS-arm64']?.version||'')}catch{console.log('')}})")
+          MAC_X64=$(echo "$RESULT" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const j=JSON.parse(d);console.log(j.platforms?.['macOS-x64']?.version||'')}catch{console.log('')}})")
           WIN_VER=$(echo "$RESULT" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const j=JSON.parse(d);console.log(j.platforms?.Windows?.version||'')}catch{console.log('')}})")
 
-          VERSION="${MAC_VER:-$WIN_VER}"
+          VERSION="${MAC_ARM64:-${MAC_X64:-$WIN_VER}}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "mac_version=$MAC_VER" >> "$GITHUB_OUTPUT"
+          echo "mac_arm64=$MAC_ARM64" >> "$GITHUB_OUTPUT"
+          echo "mac_x64=$MAC_X64" >> "$GITHUB_OUTPUT"
           echo "win_version=$WIN_VER" >> "$GITHUB_OUTPUT"
 
           if [ -z "$VERSION" ]; then echo "No version detected"; exit 0; fi
@@ -259,8 +261,12 @@ jobs:
           name: Codex ${{ steps.version.outputs.version }}
           body: |
             ## Upstream Versions
-            - **macOS / Linux**: `${{ steps.version.outputs.mac_version || 'N/A' }}`
-            - **Windows**: `${{ steps.version.outputs.win_version || 'N/A' }}`
+            | Platform | Version |
+            |----------|---------|
+            | macOS arm64 | `${{ steps.version.outputs.mac_arm64 || 'N/A' }}` |
+            | macOS x64 | `${{ steps.version.outputs.mac_x64 || 'N/A' }}` |
+            | Windows x64 | `${{ steps.version.outputs.win_version || 'N/A' }}` |
+            | Linux | uses macOS ASAR |
           files: |
             artifacts/**/*.dmg
             artifacts/**/*.zip
