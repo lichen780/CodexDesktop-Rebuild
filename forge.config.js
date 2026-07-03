@@ -2,6 +2,21 @@ const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 const path = require("path");
 const fs = require("fs");
 
+const githubRepository = process.env.GITHUB_REPOSITORY || "";
+const githubRefName = process.env.GITHUB_REF_NAME || "master";
+const repositoryUrl =
+  process.env.CODEX_REPOSITORY_URL ||
+  (githubRepository ? `https://github.com/${githubRepository}` : undefined);
+const remoteIconUrl =
+  process.env.CODEX_ICON_URL ||
+  (githubRepository
+    ? `https://raw.githubusercontent.com/${githubRepository}/${githubRefName}/resources/electron.ico`
+    : undefined);
+
+function withRepositoryHomepage(options) {
+  return repositoryUrl ? { ...options, homepage: repositoryUrl } : options;
+}
+
 module.exports = {
   packagerConfig: {
     name: "Codex",
@@ -64,17 +79,17 @@ module.exports = {
         authors: "OpenAI, Cometix Space",
         description: "Codex Desktop App",
         setupIcon: "./resources/electron.ico",
-        iconUrl: "https://raw.githubusercontent.com/Haleclipse/CodexDesktop-Rebuild/master/resources/electron.ico",
+        ...(remoteIconUrl ? { iconUrl: remoteIconUrl } : {}),
       },
     },
     { name: "@electron-forge/maker-zip", platforms: ["win32"] },
     {
       name: "@electron-forge/maker-deb",
-      config: { options: { name: "codex", productName: "Codex", genericName: "AI Coding Assistant", categories: ["Development", "Utility"], bin: "Codex", maintainer: "Cometix Space", homepage: "https://github.com/Haleclipse/CodexDesktop-Rebuild", icon: "./resources/electron.png" } },
+      config: { options: withRepositoryHomepage({ name: "codex", productName: "Codex", genericName: "AI Coding Assistant", categories: ["Development", "Utility"], bin: "Codex", maintainer: "Cometix Space", icon: "./resources/electron.png" }) },
     },
     {
       name: "@electron-forge/maker-rpm",
-      config: { options: { name: "codex", productName: "Codex", genericName: "AI Coding Assistant", categories: ["Development", "Utility"], bin: "Codex", license: "Apache-2.0", homepage: "https://github.com/Haleclipse/CodexDesktop-Rebuild", icon: "./resources/electron.png" } },
+      config: { options: withRepositoryHomepage({ name: "codex", productName: "Codex", genericName: "AI Coding Assistant", categories: ["Development", "Utility"], bin: "Codex", license: "Apache-2.0", icon: "./resources/electron.png" }) },
     },
     { name: "@electron-forge/maker-zip", platforms: ["linux"] },
   ],
