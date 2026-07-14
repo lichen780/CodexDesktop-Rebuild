@@ -17,6 +17,7 @@ const PATCHES = [
   "patch-copyright.js",
   "patch-devtools.js",
   "patch-fast-mode.js",
+  "patch-codex-home-env.js",
   "patch-model-catalog-filter.js",
   "patch-plugin-auth.js",
   "patch-composer-workspace-root.js",
